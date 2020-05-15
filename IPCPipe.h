@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include <transfer/src/TransferInterface.h>
 
@@ -61,7 +62,7 @@ namespace ipc
 
 		bool isServer = false;
 
-		char* dataToRecv;
+		std::vector<char> dataToRecv;
 		size_t dataToRecvSize = 0;
 
         void RecvThread();
@@ -71,7 +72,7 @@ namespace ipc
     {
     public:
         IPCPipeServer(const std::string& name, size_t size);
-        virtual ~IPCPipeServer() = default;;
+        virtual ~IPCPipeServer() = default;
     };
 
 
