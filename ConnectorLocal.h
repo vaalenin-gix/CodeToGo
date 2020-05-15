@@ -30,7 +30,7 @@ namespace ipc
         std::string GetName();
         void SendConnect() const;
 
-		void Reconnect() const;
+	void Reconnect() const;
 
     protected:
         std::string serverPipeName;
