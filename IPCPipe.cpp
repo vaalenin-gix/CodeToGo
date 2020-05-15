@@ -17,7 +17,6 @@ namespace ipc
             , size (0)
             , pipe (INVALID_HANDLE_VALUE)
             , errorCode (0)
-            , buffer (nullptr)
         {
             this->isServer = false;
             this->connected = false;
@@ -25,7 +24,6 @@ namespace ipc
 
         virtual ~WinPipe()
         {
-            delete[] buffer;
             Destroy();
         }
 
@@ -119,7 +117,7 @@ namespace ipc
 
         bool Read(std::string&  dataToRecv) override
         {
-			return true;
+		return true;
         }
 
         void CreateServer(const std::string& name, size_t size) override
@@ -165,7 +163,7 @@ namespace ipc
 
             if (pipe != INVALID_HANDLE_VALUE)
             {
-                this->buffer = new char[this->size];
+                this->buffer.resize(this->size);
             }
         }
 
@@ -215,7 +213,7 @@ namespace ipc
 		std::size_t size = 0;
         HANDLE pipe = nullptr;
         DWORD errorCode = 0;
-        char* buffer = nullptr;
+        std::vector <char> buffer;
     };
 
 
