@@ -2,7 +2,7 @@
 
 #include "ConnectorLocal.h"
 
-#define SMO_SERVER_ADDRESS_SIZE 64
+constexpr unsigned SMO_SERVER_ADDRESS_SIZE = 64;
 
 namespace ipc
 {
@@ -25,19 +25,17 @@ namespace ipc
     {
         const ConnectorLocalHelper helper{};
 
-        auto dataToRecv = new char[7];
-		size_t realSize = 0;
-		this->connectedPeer->RecvNow(dataToRecv, 7, &realSize);
+        char dataToRecv [7];
+	size_t realSize = 0;
+	this->connectedPeer->RecvNow(dataToRecv, 7, &realSize);
 
         if (strncmp (dataToRecv, "connect", realSize) == 0)
         {
-			this->serverPipeName = helper.GenerateName();
-            connectedPeer->Send(serverPipeName);
+		this->serverPipeName = helper.GenerateName();
+        	connectedPeer->Send(serverPipeName);
         }
         else
-			this->serverPipeName = "";
-
-		delete[] dataToRecv;
+		this->serverPipeName = "";
 
         return this->serverPipeName;
     }
@@ -66,30 +64,26 @@ namespace ipc
 
 	std::string ConnectedPeerLocalhostClient::GetName() const
 	{
-		auto* dataToRecv = new char[15];
+		char dataToRecv[15];
 		size_t realSize = 0;
 
 		this->connectedPeer->RecvNow(dataToRecv, 15, &realSize);
 
 		std::string clientPipeName(dataToRecv, realSize);
-		delete[] dataToRecv;
-        return clientPipeName;
+        	return clientPipeName;
     }
 
     bool ConnectedPeerLocalhostClient::WaitForConnect() const
     {
-	    auto* dataToRecv = new char[9];
+	    	char dataToRecv[9];
 		size_t realSize = 0;
 		this->connectedPeer->RecvNow(dataToRecv, 9, &realSize);
 
 		if (strncmp(dataToRecv, "connected", realSize) == 0)
 		{
-			delete[] dataToRecv;
 			this->connectedPeer->Destroy();
 			return true;
 		}
-
-		delete[] dataToRecv;
 		return false;
     }
 
@@ -112,25 +106,24 @@ namespace ipc
     {
         if (this->ipcNamePrefix.empty())
         {
-			this->connectedPeer = std::make_unique<ConnectedPeerLocalhostServer>(this->ipcName);
-			this->waitForClientsConnect = std::make_unique <std::thread>([this, params]()
-            {
-                while (!this->stopped)
-                {
-					this->connectedPeer->Reconnect();
-                    const auto ipcServerName = this->connectedPeer->GetName();
-                    if (!ipcServerName.empty())
-                    {
-                        //bigDataServer = realTimeServer + std::string("_");
-						this->serverPeers.emplace_back(std::make_shared<PeerLocalhostServer>(ipcServerName, params->dataType));
+		this->connectedPeer = std::make_unique<ConnectedPeerLocalhostServer>(this->ipcName);
+		this->waitForClientsConnect = std::make_unique <std::thread>([this, params]()
+            	{
+                	while (!this->stopped)
+                	{
+				this->connectedPeer->Reconnect();
+                    		const auto ipcServerName = this->connectedPeer->GetName();
+			    	if (!ipcServerName.empty())
+			    	{
+					this->serverPeers.emplace_back(std::make_shared<PeerLocalhostServer>(ipcServerName, params->dataType));
 
-                        if (this->clientConnectCallback)
-                        {
-							this->connectedPeer->SendConnect();
-							this->clientConnectCallback(&*this->serverPeers.back());
-                        }
-                    }
-                }
+					if (this->clientConnectCallback)
+					{
+						this->connectedPeer->SendConnect();
+						this->clientConnectCallback(&*this->serverPeers.back());
+					}
+			    	}
+                	}		
             });
         }
     }
@@ -149,7 +142,7 @@ namespace ipc
 
 		this->server = std::make_unique<PeerLocalhostServer>(ipcServerName, dataType);
 
-        return dynamic_cast<Transfer::Peer*>(&*this->server);
+        	return dynamic_cast<Transfer::Peer*>(&*this->server);
     }
 
     void ConnectorLocalServer::OnClientConnected(const Transfer::ClientConnectCallback& callback)
@@ -157,18 +150,17 @@ namespace ipc
 		this->clientConnectCallback = callback;
     }
 
-    void ConnectorLocalServer::Disconnect(Transfer::Peer* peer)
+    void ConnectorLocalServer::Disconnect(const Transfer::Peer* peer)
     {
         for (auto it = this->serverPeers.begin (); it != this->serverPeers.end (); ++it)
         {
             if (&**it == peer)
             {
-				this->serverPeers.erase(it);
+		this->serverPeers.erase(it);
                 break;
             }
         }
     }
-
 
     ConnectorLocalClient::ConnectorLocalClient(const ConnectorLocalParams* params) :
         ConnectorLocal(params),
@@ -183,7 +175,7 @@ namespace ipc
         if (this->ipcNamePrefix.empty())
         {
 			this->connectedPeer = std::make_unique<ConnectedPeerLocalhostClient>(ipcName);
-            ipcClientName = this->connectedPeer->GetName();
+            		ipcClientName = this->connectedPeer->GetName();
 
 			this->connectedPeer->WaitForConnect();
 			this->connectedPeer.reset();
@@ -191,10 +183,10 @@ namespace ipc
         else
         {
 			this->connectorHelperLocalhostClient = ConnectorLocalHelper::CreateClientInstance(ipcArbitName);
-            ipcClientName = this->connectorHelperLocalhostClient->GetIPCName();
+            		ipcClientName = this->connectorHelperLocalhostClient->GetIPCName();
         }
 
 		this->client = std::make_unique<PeerLocalhostClient>(ipcClientName, this->dataType, noSetRecvCallback);
-        return dynamic_cast<Transfer::Peer*>(&*this->client);
+        	return dynamic_cast<Transfer::Peer*>(&*this->client);
     }
 }
